@@ -7,6 +7,30 @@
 #include <algorithm>
 #include <regex>
 
+/// @brief Pure function to filter words from a word list
+/// @param wordList The list of all words to filter
+/// @param filterList The list of words to filter out
+/// @return The filtered list of words
+auto filterWords = [](const std::vector<std::string>& wordList, const std::vector<std::string>& filterList) {
+    std::vector<std::string> result;
+
+    for (const std::string& word : wordList) {
+        bool match = false;
+        for (const std::string& filter : filterList) {
+            if (word == filter) {
+                match = true;
+                break;
+            }
+        }
+        if (match) {
+            result.push_back(word);
+        }
+    }
+
+    return result;
+};
+
+
 // Pure function to read files
 auto readFile = [](const std::string& fileName) -> std::string {
     std::ifstream file(fileName);
@@ -74,22 +98,17 @@ int main() {
         const auto tokenizedBookContent = tokenize(bookContent);
         const auto tokenizedWarTerms = tokenize(warTerms);
         const auto tokenizedPeaceTerms = tokenize(peaceTerms);
-
-        // Output results
-        std::cout << "\nTokenized War Terms:\n";
-        std::copy(tokenizedWarTerms.begin(), tokenizedWarTerms.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
-
-        std::cout << "\nTokenized Peace Terms:\n";
-        std::copy(tokenizedPeaceTerms.begin(), tokenizedPeaceTerms.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
-
-        // std::cout << "\nTokenized Book Content:\n";
-        // std::copy(tokenizedBookContent.begin(), tokenizedBookContent.end(), std::ostream_iterator<std::string>(std::cout, "\n"));
-
+        
         //test
         //
         writeToFile(tokenizedBookContent, "tokenized_book.txt");
         //
         //test end
+
+        
+        // Filter out war and peace terms from the book content
+        const auto filteredWarContent = filterWords(tokenizedBookContent, tokenizedWarTerms);
+        const auto filteredPeaceContent = filterWords(tokenizedBookContent, tokenizedPeaceTerms);
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
