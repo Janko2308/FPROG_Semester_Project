@@ -11,7 +11,7 @@
 /// @param wordList The list of words to filter
 /// @param filterList The list of words to filter out
 /// @return The filtered list of words
-auto filterWords = [](const std::vector<std::string>& wordList, const std::vector<std>>stirng>& filterList) {
+auto filterWords = [](const std::vector<std::string>& wordList, const std::vector<std::string>& filterList) {
     std::vector<std::string> result;
 
     std::copy_if(wordList.begin(), wordList.end(), std::back_inserter(result),
