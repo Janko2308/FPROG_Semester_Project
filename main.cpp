@@ -7,6 +7,27 @@
 #include <algorithm>
 #include <regex>
 
+/// @brief Pure function to count occurences of words in a word list
+/// @param words The list of words to count
+/// @return A map of words to their counts
+auto countOccurences(const std::vector<std::string>& words) {
+    auto map = [](const std::string& word) {
+        return std::make_pair(word, 1);
+    };
+
+    std::vector<std::pair<std::string, int>> pairs;
+    std::transform(words.begin(), words.end(), std::back_inserter(pairs), map);
+
+    auto reduce = [](std::unordered_map<std::string, int>& result, const std::pair<std::string, int>& pair) {
+        result[pair.first] += pair.second;
+    }
+
+    std::unordered_map<std::string, int> result;
+    std::for_each(pairs.begin(), pairs.end(), std::bind(reduce, std::ref(result), std::placeholders::_1));
+
+    return result;
+}
+
 /// @brief Pure function to filter words from a word list
 /// @param wordList The list of all words to filter
 /// @param filterList The list of words to filter out
@@ -109,6 +130,23 @@ int main() {
         // Filter out war and peace terms from the book content
         const auto filteredWarContent = filterWords(tokenizedBookContent, tokenizedWarTerms);
         const auto filteredPeaceContent = filterWords(tokenizedBookContent, tokenizedPeaceTerms);
+
+        // Count occurences of war and peace terms in the book content
+        const auto warCounts = countOccurences(filteredWarContent);
+        const auto peaceCounts = countOccurences(filteredPeaceContent);
+
+        // print results
+        std::cout << "War counts: " << std::endl;
+        for (const auto& pair : warCounts) {
+            std::cout << pair.first << ": " << pair.second << std::endl;
+        }
+        std::cout << std::endl;
+
+        std::cout << "Peace counts: " << std::endl;
+        for (const auto& pair : peaceCounts) {
+            std::cout << pair.first << ": " << pair.second << std::endl;
+        }
+        std::cout << std::endl;
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
