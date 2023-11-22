@@ -20,7 +20,7 @@ auto countOccurences(const std::vector<std::string>& words) {
 
     auto reduce = [](std::unordered_map<std::string, int>& result, const std::pair<std::string, int>& pair) {
         result[pair.first] += pair.second;
-    }
+    };
 
     std::unordered_map<std::string, int> result;
     std::for_each(pairs.begin(), pairs.end(), std::bind(reduce, std::ref(result), std::placeholders::_1));
