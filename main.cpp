@@ -6,6 +6,52 @@
 #include <iterator>
 #include <algorithm>
 #include <regex>
+#include <numeric>
+
+/// @brief Pure function to calculate the distances between occurences of words
+/// @param occurences A map of words to their positions in the text
+/// @return A map of words to their distances between occurences
+auto calculateDistances = [](const std::unordered_map<std::string, int>& occurences) {
+    std::map<std::string, std::vector<int>> distances;
+
+    for (const auto& entry : occurences) {
+        const std::string& word = entry.first;
+        const int count = entry.second;
+
+        std::vector<int>& dist = distances[word];
+        dist.reserve(count);
+
+        for (int i = 0; i < count; ++i) {
+            dist.push_back(0);
+        }
+    }
+
+    for (const auto& entry : occurences) {
+        const std::string& word = entry.first;
+        const int count = entry.second;
+
+        std::vector<int>& dist = distances[word];
+        for (int i = 0; i < count; ++i) {
+            dist[i] = i == 0 ? 0 : dist[i - 1] + 1;
+        }
+    }
+
+    return distances;
+};
+
+auto calculateDensity = [](const std::unordered_map<std::string, int>& occurences) {
+    auto distances = calculateDistances(occurences);
+
+    std::map<std::string, double> density;
+
+    for (const auto& entry : distances) {
+        const std::vector<int>& dist = entry.second;
+        double sum = std::accumulate(dist.begin(), dist.end(), 0.0);
+        density.emplace(entry.first, sum / dist.size());
+    }
+
+    return density;
+};
 
 /// @brief Pure function to count occurences of words in a word list
 /// @param words The list of words to count
@@ -26,7 +72,7 @@ auto countOccurences(const std::vector<std::string>& words) {
     std::for_each(pairs.begin(), pairs.end(), std::bind(reduce, std::ref(result), std::placeholders::_1));
 
     return result;
-}
+};
 
 /// @brief Pure function to filter words from a word list
 /// @param wordList The list of all words to filter
@@ -144,6 +190,23 @@ int main() {
 
         std::cout << "Peace counts: " << std::endl;
         for (const auto& pair : peaceCounts) {
+            std::cout << pair.first << ": " << pair.second << std::endl;
+        }
+        std::cout << std::endl;
+
+        // Count densities of war and peace terms in the book content
+        const auto warDensity = calculateDensity(warCounts);
+        const auto peaceDensity = calculateDensity(peaceCounts);
+
+        // print results
+        std::cout << "War density: " << std::endl;
+        for (const auto& pair : warDensity) {
+            std::cout << pair.first << ": " << pair.second << std::endl;
+        }
+        std::cout << std::endl;
+
+        std::cout << "Peace density: " << std::endl;
+        for (const auto& pair : peaceDensity) {
             std::cout << pair.first << ": " << pair.second << std::endl;
         }
         std::cout << std::endl;
