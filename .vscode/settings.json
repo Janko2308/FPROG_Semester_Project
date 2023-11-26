@@ -105,6 +105,8 @@
     "typeinfo": "cpp",
     "bitset": "cpp",
     "ctime": "cpp",
-    "regex": "cpp"
+    "regex": "cpp",
+    "map": "cpp",
+    "optional": "cpp"
   }
 }
