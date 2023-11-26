@@ -14,41 +14,40 @@
 auto calculateDistances = [](const std::unordered_map<std::string, int>& occurences) {
     std::map<std::string, std::vector<int>> distances;
 
-    for (const auto& entry : occurences) {
+    std::for_each(occurences.begin(), occurences.end(), [&](const auto& entry) {
         const std::string& word = entry.first;
         const int count = entry.second;
 
         std::vector<int>& dist = distances[word];
-        dist.reserve(count);
+        dist.resize(count);
 
-        for (int i = 0; i < count; ++i) {
-            dist.push_back(0);
-        }
-    }
+        std::iota(dist.begin(), dist.end(), 0);
+    });
 
-    for (const auto& entry : occurences) {
+    std::for_each(occurences.begin(), occurences.end(), [&](const auto& entry) {
         const std::string& word = entry.first;
-        const int count = entry.second;
 
         std::vector<int>& dist = distances[word];
-        for (int i = 0; i < count; ++i) {
-            dist[i] = i == 0 ? 0 : dist[i - 1] + 1;
-        }
-    }
+        int index = 0;
+        std::transform(dist.begin(), dist.end(), dist.begin(), [&index](int) { return index++; });
+    });
 
     return distances;
 };
 
+/// @brief Pure function to calculate the density of occurences of words
+/// @param occurences A map of words to their positions in the text
+/// @return A map of words to their densities
 auto calculateDensity = [](const std::unordered_map<std::string, int>& occurences) {
     auto distances = calculateDistances(occurences);
 
     std::map<std::string, double> density;
 
-    for (const auto& entry : distances) {
+    std::transform(distances.begin(), distances.end(), std::inserter(density, density.end()), [](const auto& entry) {
         const std::vector<int>& dist = entry.second;
         double sum = std::accumulate(dist.begin(), dist.end(), 0.0);
-        density.emplace(entry.first, sum / dist.size());
-    }
+        return std::make_pair(entry.first, sum / dist.size());
+    });
 
     return density;
 };
@@ -78,27 +77,21 @@ auto countOccurences(const std::vector<std::string>& words) {
 /// @param wordList The list of all words to filter
 /// @param filterList The list of words to filter out
 /// @return The filtered list of words
-auto filterWords = [](const std::vector<std::string>& wordList, const std::vector<std::string>& filterList) {
-    std::vector<std::string> result;
+auto filterWords = [](const std::vector<std::string>& filterList) {
+    return [filterList](const std::vector<std::string>& wordList) {
+        std::vector<std::string> result;
 
-    for (const std::string& word : wordList) {
-        bool match = false;
-        for (const std::string& filter : filterList) {
-            if (word == filter) {
-                match = true;
-                break;
-            }
-        }
-        if (match) {
-            result.push_back(word);
-        }
-    }
+        std::copy_if(wordList.begin(), wordList.end(), std::back_inserter(result), [&filterList](const std::string& word) {
+            return std::find(filterList.begin(), filterList.end(), word) != filterList.end();
+        });
 
-    return result;
+        return result;
+    };
 };
 
-
-// Pure function to read files
+/// @brief Read file contents into a string
+/// @param fileName The name of the file to read
+/// @return The contents of the file
 auto readFile = [](const std::string& fileName) -> std::string {
     std::ifstream file(fileName);
     if (!file.is_open()) {
@@ -107,7 +100,9 @@ auto readFile = [](const std::string& fileName) -> std::string {
     return std::string(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
 };
 
-// Pure function to tokenize text
+/// @brief Tokenize a string into a list of words
+/// @param inputText The string to tokenize
+/// @return The list of words
 auto tokenize = [](const std::string& inputText) {
     // Replace "CHAPTER <number>" with "CHAPTER_<number>"
     std::regex chapterPattern(R"(CHAPTER (\d+))");
@@ -174,8 +169,8 @@ int main() {
 
         
         // Filter out war and peace terms from the book content
-        const auto filteredWarContent = filterWords(tokenizedBookContent, tokenizedWarTerms);
-        const auto filteredPeaceContent = filterWords(tokenizedBookContent, tokenizedPeaceTerms);
+        const auto filteredWarContent = filterWords(tokenizedBookContent)(tokenizedWarTerms);
+        const auto filteredPeaceContent = filterWords(tokenizedBookContent)(tokenizedPeaceTerms);
 
         // Count occurences of war and peace terms in the book content
         const auto warCounts = countOccurences(filteredWarContent);
