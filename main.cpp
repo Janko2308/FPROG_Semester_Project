@@ -77,13 +77,16 @@ auto filterWords = [](const std::vector<std::string>& filterList) {
         std::copy_if(wordList.begin(), wordList.end(), std::back_inserter(result), [&filterList](const std::string& word) {
             return std::find(filterList.begin(), filterList.end(), word) != filterList.end();
         });
-
         return result;
     };
 };
 
 
+
 // Pure function to read files
+/// @brief Read file contents into a string
+/// @param fileName The name of the file to read
+/// @return The contents of the file
 auto readFile = [](const std::string& fileName) -> std::optional<std::string> {
     std::ifstream file(fileName);
     if (!file.is_open()) {
@@ -99,7 +102,6 @@ auto tokenize = [](const std::optional<std::string>& optionalInputText) -> std::
     }
 
     const std::string& inputText = *optionalInputText;
-
     // Replace "CHAPTER <number>" with "CHAPTER_<number>"
     std::regex chapterPattern(R"(CHAPTER (\d+))");
     std::string processedText = std::regex_replace(inputText, chapterPattern, "CHAPTER_$1");
@@ -154,36 +156,6 @@ auto splitByChapter = [](const std::vector<std::string>& tokens) {
 
     return chapters;
 };
-//test
-//
-auto writeToFile = [](const std::vector<std::string>& content, const std::string& filename) {
-    std::ofstream file(filename);
-    if (!file.is_open()) {
-        throw std::runtime_error("Failed to open file for writing: " + filename);
-    }
-    std::copy(content.begin(), content.end(), std::ostream_iterator<std::string>(file, "\n"));
-};
-
-void writeChaptersToFile(const std::map<int, std::vector<std::string>>& chapters, const std::string& filename) {
-    std::ofstream outFile(filename);
-
-    if (!outFile.is_open()) {
-        std::cerr << "Error: Unable to open file for writing." << std::endl;
-        return;
-    }
-
-    for (const auto& chapter : chapters) {
-        outFile << "Chapter " << chapter.first << ":\n";
-        for (const auto& token : chapter.second) {
-            outFile << token << ' ';
-        }
-        outFile << "\n\n"; // Two newlines for separation between chapters
-    }
-
-    outFile.close();
-}
-//
-//test end
 
 int main() {
     try {
@@ -200,13 +172,6 @@ int main() {
         
         const auto tokenizedWarTerms = tokenize(warTerms);
         const auto tokenizedPeaceTerms = tokenize(peaceTerms);
-        
-        //test
-        //
-        writeToFile(tokenizedBookContent, "tokenized_book.txt");
-        writeChaptersToFile(chapters, "tokenized_chapters.txt");
-        //
-        //test end
 
         std::map<int, double> warDensities;
         std::map<int, double> peaceDensities;
@@ -242,6 +207,7 @@ int main() {
             //std::cout << "Chapter " << chapterNum << ": " << chapterTheme << ": " << warDensity << ", " << peaceDensity << std::endl;
             std::cout << "Chapter " << chapterNum << ": " << chapterTheme << std::endl;
         });
+
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
