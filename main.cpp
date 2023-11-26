@@ -214,25 +214,18 @@ int main() {
         std::for_each(chapters.begin(), chapters.end(), [&](const auto& chapterPair) {
             auto chapterNum = chapterPair.first;
             const auto& chapterContent = chapterPair.second;
-            std::cout << "Processing chapter " << chapterNum << std::endl;
 
             // Create filtered content
             auto filteredWarContent = filterWords(tokenizedWarTerms)(chapterContent);
             auto filteredPeaceContent = filterWords(tokenizedPeaceTerms)(chapterContent);
-            std::cout << "Filtered war content: " << filteredWarContent.size() << std::endl;
-            std::cout << "Filtered peace content: " << filteredPeaceContent.size() << std::endl;
 
             // Count occurrences
             auto warCounts = countOccurences(filteredWarContent);
             auto peaceCounts = countOccurences(filteredPeaceContent);
-            std::cout << "War counts: " << warCounts.size() << std::endl;
-            std::cout << "Peace counts: " << peaceCounts.size() << std::endl;
 
             // Calculate densities
             double warDensity = calculateDensity(warCounts, chapterContent.size());
             double peaceDensity = calculateDensity(peaceCounts, chapterContent.size());
-            std::cout << "War density: " << warDensity << std::endl;
-            std::cout << "Peace density: " << peaceDensity << std::endl;
 
             // Assign chapter densities
             warDensities[chapterNum] = warDensity;
@@ -249,10 +242,6 @@ int main() {
             //std::cout << "Chapter " << chapterNum << ": " << chapterTheme << ": " << warDensity << ", " << peaceDensity << std::endl;
             std::cout << "Chapter " << chapterNum << ": " << chapterTheme << std::endl;
         });
-
-
-        
-        
 
     } catch (const std::exception& e) {
         std::cerr << "Error: " << e.what() << std::endl;
