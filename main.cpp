@@ -40,7 +40,6 @@ auto calculateDistances = [](const std::unordered_map<std::string, int>& occuren
         std::vector<int>& dist = distances[word];
         int index = 0;
         std::transform(dist.begin(), dist.end(), dist.begin(), [&index](int) { return index++; });
-        std::transform()
     });
 
     return distances;
@@ -182,60 +181,54 @@ auto splitByChapter = [](const std::vector<std::string>& tokens) {
 };
 
 int main() {
-    try {
-        const std::string bookFilename = "war_and_peace.txt";
-        const std::string warTermsFilename = "war_terms.txt";
-        const std::string peaceTermsFilename = "peace_terms.txt";
+    const std::string bookFilename = "war_and_peace.txt";
+    const std::string warTermsFilename = "war_terms.txt";
+    const std::string peaceTermsFilename = "peace_terms.txt";
 
-        const auto bookContent = readFile(bookFilename);
-        const auto warTerms = readFile(warTermsFilename);
-        const auto peaceTerms = readFile(peaceTermsFilename);
+    const auto bookContent = readFile(bookFilename);
+    const auto warTerms = readFile(warTermsFilename);
+    const auto peaceTerms = readFile(peaceTermsFilename);
 
-        const auto tokenizedBookContent = tokenize(bookContent);
-        const auto chapters = splitByChapter(tokenizedBookContent);
-        
-        const auto tokenizedWarTerms = tokenize(warTerms);
-        const auto tokenizedPeaceTerms = tokenize(peaceTerms);
-
-        std::map<int, double> warDensities;
-        std::map<int, double> peaceDensities;
-        // Processing each chapter
-        std::for_each(chapters.begin(), chapters.end(), [&](const auto& chapterPair) {
-            auto chapterNum = chapterPair.first;
-            const auto& chapterContent = chapterPair.second;
-
-            // Create filtered content
-            auto filteredWarContent = filterWords(tokenizedWarTerms)(chapterContent);
-            auto filteredPeaceContent = filterWords(tokenizedPeaceTerms)(chapterContent);
-
-            // Count occurrences
-            auto warCounts = countOccurences(filteredWarContent);
-            auto peaceCounts = countOccurences(filteredPeaceContent);
-
-            // Calculate densities
-            double warDensity = calculateDensity(warCounts, chapterContent.size());
-            double peaceDensity = calculateDensity(peaceCounts, chapterContent.size());
-
-            // Assign chapter densities
-            warDensities[chapterNum] = warDensity;
-            peaceDensities[chapterNum] = peaceDensity;
-        });
+    const auto tokenizedBookContent = tokenize(bookContent);
+    const auto chapters = splitByChapter(tokenizedBookContent);
     
-        // Determine the theme of each chapter based on the densities
-        std::for_each(warDensities.begin(), warDensities.end(), [&](const auto& warDensityPair) {
-            auto chapterNum = warDensityPair.first;
-            auto warDensity = warDensityPair.second;
-            auto peaceDensity = peaceDensities[chapterNum];
+    const auto tokenizedWarTerms = tokenize(warTerms);
+    const auto tokenizedPeaceTerms = tokenize(peaceTerms);
 
-            std::string chapterTheme = (warDensity > peaceDensity) ? "war-related" : "peace-related";
-            //std::cout << "Chapter " << chapterNum << ": " << chapterTheme << ": " << warDensity << ", " << peaceDensity << std::endl;
-            std::cout << "Chapter " << chapterNum << ": " << chapterTheme << std::endl;
-        });
+    std::map<int, double> warDensities;
+    std::map<int, double> peaceDensities;
+    // Processing each chapter
+    std::for_each(chapters.begin(), chapters.end(), [&](const auto& chapterPair) {
+        auto chapterNum = chapterPair.first;
+        const auto& chapterContent = chapterPair.second;
 
+        // Create filtered content
+        auto filteredWarContent = filterWords(tokenizedWarTerms)(chapterContent);
+        auto filteredPeaceContent = filterWords(tokenizedPeaceTerms)(chapterContent);
 
-    } catch (const std::exception& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-    }
+        // Count occurrences
+        auto warCounts = countOccurences(filteredWarContent);
+        auto peaceCounts = countOccurences(filteredPeaceContent);
+
+        // Calculate densities
+        double warDensity = calculateDensity(warCounts, chapterContent.size());
+        double peaceDensity = calculateDensity(peaceCounts, chapterContent.size());
+
+        // Assign chapter densities
+        warDensities[chapterNum] = warDensity;
+        peaceDensities[chapterNum] = peaceDensity;
+    });
+
+    // Determine the theme of each chapter based on the densities
+    std::for_each(warDensities.begin(), warDensities.end(), [&](const auto& warDensityPair) {
+        auto chapterNum = warDensityPair.first;
+        if(chapterNum == 0) return; // Skip the the words before the first chapter
+        auto warDensity = warDensityPair.second;
+        auto peaceDensity = peaceDensities[chapterNum];
+
+        std::string chapterTheme = (warDensity > peaceDensity) ? "war-related" : "peace-related";
+        std::cout << "Chapter " << chapterNum << ": " << chapterTheme << std::endl;
+    });
 
     return 0;
 }
