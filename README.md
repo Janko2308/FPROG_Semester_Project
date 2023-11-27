@@ -1,3 +1,6 @@
+# Readme - FPROG_Semester_Project
+To run and compile the program you have to navigate into the folder with ```main.cpp``` and compile it with ```make``` command. The makefile automatically compiles the program into executable called ```TextualRide```. After that you can run the program by typing in ```./TextualRide```.
+
 # FPROG_Semester_Project
 For the problem:
 Please create a program, that reads a large text file (e.g. "war and peace from Tolstoy") and another 2 text files with a word list, one with "war-terms" and one with "peace-terms". Now your program has to try to categorize the chapters of the book to be war-related or peace-related by the help of these 2 word lists. The occurrences of the words in the chapters and their relative distance to the next word of the same category can give the density of war- and peace-terms in the text. The chapter is characterized as war-chapter if the density of war terms is higher than the pease-density." . Chapters are announced by the word "chapter" and a number.
