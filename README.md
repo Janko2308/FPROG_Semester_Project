@@ -1,5 +1,5 @@
 # Readme - FPROG_Semester_Project
-To run and compile the program you have to navigate into the folder with ```main.cpp``` and compile it with ```make``` command. The makefile automatically compiles the program into executable called ```TextualRide```. After that you can run the program by typing in ```./TextualRide```.
+To run and compile the program you have to navigate into the folder with ```main.cpp``` and compile it with ```make run``` command. The makefile automatically compiles the program into executable called ```TextualRide``` and executes it. With ```make test``` you can compile and execute the Test_Cases.
 
 # FPROG_Semester_Project
 For the problem:

@@ -1,3 +1,6 @@
+#define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
+#include "doctest.h"
+
 #include <iostream>
 #include <fstream>
 #include <vector>
@@ -12,9 +15,6 @@
 #include <functional>
 #include <optional>
 
-/// @brief Pure function to calculate the distances between occurences of words
-/// @param occurences A map of words to their positions in the text
-/// @return A map of words to their distances between occurences
 auto calculateDistances = [](const std::unordered_map<std::string, int>& occurences) {
     std::map<std::string, std::vector<int>> distances;
 
@@ -180,59 +180,114 @@ auto splitByChapter = [](const std::vector<std::string>& tokens) {
     return chapters;
 };
 
-int main() {
-    const std::string bookFilename = "war_and_peace.txt";
-    const std::string warTermsFilename = "war_terms.txt";
-    const std::string peaceTermsFilename = "peace_terms.txt";
+TEST_CASE("calculateDistances with empty input") {
+    std::unordered_map<std::string, int> emptyMap;
+    auto result = calculateDistances(emptyMap);
 
-    const auto bookContent = readFile(bookFilename);
-    const auto warTerms = readFile(warTermsFilename);
-    const auto peaceTerms = readFile(peaceTermsFilename);
-
-    const auto tokenizedBookContent = tokenize(bookContent);
-    const auto chapters = splitByChapter(tokenizedBookContent);
-    
-    const auto tokenizedWarTerms = tokenize(warTerms);
-    const auto tokenizedPeaceTerms = tokenize(peaceTerms);
-
-    std::map<int, double> warDensities;
-    std::map<int, double> peaceDensities;
-    // Processing each chapter
-    std::for_each(chapters.begin(), chapters.end(), [&](const auto& chapterPair) {
-        auto chapterNum = chapterPair.first;
-        const auto& chapterContent = chapterPair.second;
-
-        // Create filtered content
-        auto filteredWarContent = filterWords(tokenizedWarTerms)(chapterContent);
-        auto filteredPeaceContent = filterWords(tokenizedPeaceTerms)(chapterContent);
-
-        // Count occurrences
-        auto warCounts = countOccurences(filteredWarContent);
-        auto peaceCounts = countOccurences(filteredPeaceContent);
-
-        // Calculate densities
-        double warDensity = calculateDensity(warCounts, chapterContent.size());
-        double peaceDensity = calculateDensity(peaceCounts, chapterContent.size());
-
-        // Assign chapter densities
-        warDensities[chapterNum] = warDensity;
-        peaceDensities[chapterNum] = peaceDensity;
-    });
-
-    // Determine the theme of each chapter based on the densities
-    std::for_each(warDensities.begin(), warDensities.end(), [&](const auto& warDensityPair) {
-        auto chapterNum = warDensityPair.first;
-        if(chapterNum == 0) return; // Skip the the words before the first chapter
-        auto warDensity = warDensityPair.second;
-        auto peaceDensity = peaceDensities[chapterNum];
-
-        std::string chapterTheme = (warDensity > peaceDensity) ? "war-related" : "peace-related";
-        std::cout << "Chapter " << chapterNum << ": " << chapterTheme << std::endl;
-    });
-
-    return 0;
+    CHECK(result.empty());
 }
 
+TEST_CASE("calculateDistances with non-empty input") {
+    std::unordered_map<std::string, int> inputMap = {
+        {"apple", 3},
+        {"orange", 2},
+        {"banana", 4}
+    };
+    auto result = calculateDistances(inputMap);
 
+    CHECK(result.size() == inputMap.size());
 
+    // Check distances for each word
+    CHECK(result["apple"] == std::vector<int>{0, 1, 2});
+    CHECK(result["orange"] == std::vector<int>{0, 1});
+    CHECK(result["banana"] == std::vector<int>{0, 1, 2, 3});
+}
+
+TEST_CASE("calculateDensity with empty occurrences") {
+    std::unordered_map<std::string, int> emptyMap;
+    int totalWords = 100;  // Some arbitrary total words
+    auto result = calculateDensity(emptyMap, totalWords);
+
+    CHECK(result == 0.0);
+}
+
+TEST_CASE("calculateDensity with non-empty occurrences") {
+    std::unordered_map<std::string, int> occurrences = {
+        {"apple", 3},
+        {"orange", 2},
+        {"banana", 4}
+    };
+    int totalWords = 50;  // Some arbitrary total words
+    auto result = calculateDensity(occurrences, totalWords);
+
+    double expectedDensity = (3 + 2 + 4) / static_cast<double>(totalWords);
+
+    CHECK(result == doctest::Approx(expectedDensity));
+}
+
+TEST_CASE("countOccurrences with empty input") {
+    std::vector<std::string> emptyWords;
+    auto result = countOccurences(emptyWords);
+
+    CHECK(result.empty());
+}
+
+TEST_CASE("countOccurrences with non-empty input") {
+    std::vector<std::string> words = {"apple", "orange", "banana", "apple", "banana"};
+    auto result = countOccurences(words);
+
+    CHECK(result.size() == 3);  // There are three unique words
+
+    CHECK(result["apple"] == 2);
+    CHECK(result["orange"] == 1);
+    CHECK(result["banana"] == 2);
+}
+
+TEST_CASE("filterWords with empty filterList") {
+    std::vector<std::string> emptyFilterList;
+    auto filterFunction = filterWords(emptyFilterList);
+
+    std::vector<std::string> wordList = {"apple", "orange", "banana"};
+    auto result = filterFunction(wordList);
+
+    CHECK(result.empty());
+}
+
+TEST_CASE("filterWords with non-empty filterList") {
+    std::vector<std::string> filterList = {"apple", "banana"};
+    auto filterFunction = filterWords(filterList);
+
+    std::vector<std::string> wordList = {"apple", "orange", "banana", "grape"};
+    auto result = filterFunction(wordList);
+
+    CHECK(result.size() == 2);  // "apple" and "banana" are in the filterList
+
+    CHECK(result[0] == "apple");
+    CHECK(result[1] == "banana");
+}
+
+TEST_CASE("tokenize with empty optionalInputText") {
+    std::optional<std::string> emptyInputText = std::nullopt;
+    auto result = tokenize(emptyInputText);
+
+    CHECK(result.empty());
+}
+
+TEST_CASE("tokenize with non-empty optionalInputText") {
+    std::optional<std::string> inputText = "CHAPTER 1 The Quick Brown Fox Jumps Over the Lazy Dog";
+    auto result = tokenize(inputText);
+
+    CHECK(result.size() == 10);  // 10 tokens in the example sentence
+
+    CHECK(result[0] == "CHAPTER_1");
+    CHECK(result[1] == "The");
+    CHECK(result[2] == "Quick");
+    CHECK(result[3] == "Brown");
+    CHECK(result[4] == "Fox");
+    CHECK(result[5] == "Jumps");
+    CHECK(result[6] == "Over");
+    CHECK(result[7] == "the");
+    CHECK(result[8] == "Lazy");
+    CHECK(result[9] == "Dog");
+}
 
